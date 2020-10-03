@@ -18,3 +18,8 @@ build
 gradlew*
 gradle
 .idea
+.gitsecret/keys/random_seed
+!*.secret
+firebase-cloud-messenger.json
+out
+fcm_app_id

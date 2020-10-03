@@ -6,6 +6,8 @@ plugins {
     Dependencies.plugins
         .forEach { (plugin, pluginVersion) -> id(plugin) version pluginVersion }
 
+    kotlin("plugin.serialization") version Versions.kotlin
+
     // Apply the application plugin to add support for building a CLI application.
     application
 }
@@ -22,6 +24,7 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:${Versions.kotlin}")
     }
 }
 
