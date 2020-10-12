@@ -15,10 +15,10 @@ fun sendTestMessage(url: String, httpClient: HttpClient): suspend () -> Either<T
             val message = Message(
                 name = "Message",
                 data = mapOf("test" to "data"),
-                topic = "all"
+                topic = "notifications"
             )
 
-            body = PushPostBody(true, message)
+            body = PushPostBody(false, message)
         }
     }
 }
