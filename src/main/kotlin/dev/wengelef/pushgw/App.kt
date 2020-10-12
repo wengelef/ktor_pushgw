@@ -40,7 +40,10 @@ fun Application.module() {
             call.respondText { "Hello" }
         }
 
-        val sendTestMessage = sendTestMessage("https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send", httpClient)
+        val sendTestMessage = sendTestMessage(
+            "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
+            httpClient
+        )
 
         post("/test") {
             val result = sendTestMessage()
