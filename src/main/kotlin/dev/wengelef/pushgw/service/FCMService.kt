@@ -1,6 +1,9 @@
-package dev.wengelef.pushgw
+package dev.wengelef.pushgw.service
 
 import arrow.core.Either
+import dev.wengelef.pushgw.Message
+import dev.wengelef.pushgw.MessageResponse
+import dev.wengelef.pushgw.PushPostBody
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
