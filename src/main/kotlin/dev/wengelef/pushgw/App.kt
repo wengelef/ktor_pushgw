@@ -1,6 +1,10 @@
 package dev.wengelef.pushgw
 
-import dev.wengelef.pushgw.service.sendTestMessage
+import arrow.core.Either
+import arrow.core.flatMap
+import dev.wengelef.pushgw.data.`in`.DataRequestBody
+import dev.wengelef.pushgw.service.authenticator
+import dev.wengelef.pushgw.service.sendDataPush
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -8,12 +12,12 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
 import io.ktor.features.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import java.io.File
 
 fun Application.module() {
@@ -31,41 +35,33 @@ fun Application.module() {
         }
     }
 
+    install(ContentNegotiation) {
+        json()
+    }
     install(DefaultHeaders)
     install(CallLogging)
 
+    val sendDataPush = sendDataPush(
+        "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
+        httpClient,
+        ::authenticator
+    )
 
     install(Routing) {
         get("/hello") {
             call.respondText { "Hello" }
         }
 
-        val sendTestMessage = sendTestMessage(
-            "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
-            httpClient
-        )
-
-        post("/test") {
-            val result = sendTestMessage()
-            call.respondText { result.toString() }
+        post("/data") {
+            Either.catch { call.receive<DataRequestBody>() }
+                .flatMap { body -> sendDataPush(body.data) }
+                .fold(
+                    ifLeft = { call.respondText { it.message ?: "Something went wrong" } },
+                    ifRight = { messageResponse -> call.respondText { messageResponse.toString() } }
+                )
         }
     }
 }
-
-@Serializable
-data class PushPostBody(
-    @SerialName("validate_only") val validatOnly: Boolean = false,
-    @SerialName("message") val message: Message
-)
-
-@Serializable
-data class Message(
-    @SerialName("name") val name: String,
-    @SerialName("data") val data: Map<String, String>,
-    @SerialName("topic") val topic: String
-)
-
-@Serializable data class MessageResponse(@SerialName("name") val name: String)
 
 fun main() {
     embeddedServer(
