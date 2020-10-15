@@ -7,6 +7,7 @@ object Dependencies {
         "io.ktor:ktor-client-apache:${Versions.ktor}",
         "io.ktor:ktor-client-serialization:${Versions.ktor}",
         "io.ktor:ktor-client-logging-jvm:${Versions.ktor}",
+        "io.ktor:ktor-serialization:${Versions.ktor}",
         "io.arrow-kt:arrow-core:${Versions.arrow}",
         "io.arrow-kt:arrow-syntax:${Versions.arrow}",
         "io.arrow-kt:arrow-fx:${Versions.arrow}",
