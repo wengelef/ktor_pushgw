@@ -1,5 +1,6 @@
 package dev.wengelef.pushgw
 
+import dev.wengelef.pushgw.service.sendTestMessage
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -14,7 +15,6 @@ import io.ktor.server.netty.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.io.File
-import java.io.FileInputStream
 
 fun Application.module() {
 

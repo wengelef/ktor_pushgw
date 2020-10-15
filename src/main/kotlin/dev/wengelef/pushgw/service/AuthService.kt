@@ -1,4 +1,4 @@
-package dev.wengelef.pushgw
+package dev.wengelef.pushgw.service
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import java.io.FileInputStream
