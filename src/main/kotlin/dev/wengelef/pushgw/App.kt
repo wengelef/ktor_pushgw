@@ -12,6 +12,7 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -21,6 +22,12 @@ import io.ktor.server.netty.*
 import java.io.File
 
 fun Application.module() {
+
+    install(ContentNegotiation) {
+        json()
+    }
+    install(DefaultHeaders)
+    install(CallLogging)
 
     val fcmAppId = File("fcm_app_id").readText(Charsets.UTF_8).trim()
 
@@ -34,12 +41,6 @@ fun Application.module() {
             serializer = KotlinxSerializer(json)
         }
     }
-
-    install(ContentNegotiation) {
-        json()
-    }
-    install(DefaultHeaders)
-    install(CallLogging)
 
     val sendDataPush = sendDataPush(
         "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
@@ -56,8 +57,8 @@ fun Application.module() {
             Either.catch { call.receive<DataRequestBody>() }
                 .flatMap { body -> sendDataPush(body.data) }
                 .fold(
-                    ifLeft = { call.respondText { it.message ?: "Something went wrong" } },
-                    ifRight = { messageResponse -> call.respondText { messageResponse.toString() } }
+                    ifLeft = { call.respond(HttpStatusCode.InternalServerError, DataRequestBody(mapOf("message" to (it.message ?: "Something went wrong") ))) },
+                    ifRight = { call.respond(HttpStatusCode.OK, DataRequestBody(mapOf("message" to "Success"))) }
                 )
         }
     }

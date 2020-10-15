@@ -2,7 +2,6 @@ package dev.wengelef.pushgw.service
 
 import arrow.core.Either
 import dev.wengelef.pushgw.data.Message
-import dev.wengelef.pushgw.data.MessageResponse
 import dev.wengelef.pushgw.data.PushBody
 import dev.wengelef.pushgw.types.Authenticator
 import io.ktor.client.*
@@ -13,7 +12,7 @@ fun sendDataPush(
     url: String,
     httpClient: HttpClient,
     authenticator: Authenticator
-): suspend (data: Map<String, String>) -> Either<Throwable, MessageResponse> = { data ->
+): suspend (data: Map<String, String>) -> Either<Throwable, Message> = { data ->
 
     Either.catch {
         httpClient.post {
@@ -21,7 +20,7 @@ fun sendDataPush(
             contentType(ContentType.Application.Json)
             header("Authorization", "Bearer ${authenticator()}")
 
-            body = PushBody(message = Message(data, "notifications"))
+            body = PushBody(message = Message(data = data, topic = "notifications"))
         }
     }
 }
