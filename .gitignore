@@ -23,3 +23,4 @@ gradle
 firebase-cloud-messenger.json
 out
 fcm_app_id
+fcm_app_config.json

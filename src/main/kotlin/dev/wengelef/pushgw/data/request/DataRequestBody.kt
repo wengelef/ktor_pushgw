@@ -1,4 +1,4 @@
-package dev.wengelef.pushgw.data.`in`
+package dev.wengelef.pushgw.data.request
 
 import kotlinx.serialization.Serializable
 

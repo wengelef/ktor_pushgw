@@ -1,12 +1,15 @@
 package dev.wengelef.pushgw
 
-import arrow.core.Either
-import arrow.core.flatMap
-import dev.wengelef.pushgw.data.Notification
-import dev.wengelef.pushgw.data.`in`.DataRequestBody
+import dev.wengelef.pushgw.data.config.FCMConfig
+import dev.wengelef.pushgw.data.request.DataRequestBody
+import dev.wengelef.pushgw.data.request.NotificationRequestBody
 import dev.wengelef.pushgw.service.authenticator
 import dev.wengelef.pushgw.service.sendDataPush
 import dev.wengelef.pushgw.service.sendPush
+import dev.wengelef.pushgw.util.respondOk
+import dev.wengelef.pushgw.util.respondWith
+import dev.wengelef.pushgw.util.responseValues
+import dev.wengelef.pushgw.util.withParameters
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -14,14 +17,13 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.logging.*
 import io.ktor.features.*
-import io.ktor.http.*
-import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.File
 
 fun Application.module() {
@@ -32,7 +34,8 @@ fun Application.module() {
     install(DefaultHeaders)
     install(CallLogging)
 
-    val fcmAppId = File("fcm_app_id").readText(Charsets.UTF_8).trim()
+    val fcmConfig: FCMConfig = File("fcm_app_config.json").readText(Charsets.UTF_8).trim()
+        .let { config -> Json.decodeFromString(config) }
 
     val httpClient = HttpClient(Apache) {
         install(Logging) {
@@ -46,13 +49,11 @@ fun Application.module() {
     }
 
     val sendDataPush = sendDataPush(
-        "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
         httpClient,
         ::authenticator
     )
 
     val sendNotification = sendPush(
-        "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
         httpClient,
         ::authenticator
     )
@@ -63,27 +64,22 @@ fun Application.module() {
         }
 
         post("/push") {
-            Either.catch { call.receive<NotificationRequestBody>() }
-                .flatMap { body -> sendNotification(body.notification) }
+            withParameters<NotificationRequestBody>(fcmConfig, call) { appId, body -> sendNotification(appId, body.notification) }
                 .fold(
-                    ifLeft = { call.respond(HttpStatusCode.InternalServerError, DataRequestBody(mapOf("message" to (it.message ?: "Something went wrong") ))) },
-                    ifRight = { call.respond(HttpStatusCode.OK, DataRequestBody(mapOf("message" to "Success"))) }
+                    ifLeft = { fcmError -> call.respondWith(fcmError.responseValues()) },
+                    ifRight = { call.respondOk() }
                 )
         }
 
         post("/data") {
-            Either.catch { call.receive<DataRequestBody>() }
-                .flatMap { body -> sendDataPush(body.data) }
+            withParameters<DataRequestBody>(fcmConfig, call) { appId, body -> sendDataPush(appId, body.data) }
                 .fold(
-                    ifLeft = { call.respond(HttpStatusCode.InternalServerError, DataRequestBody(mapOf("message" to (it.message ?: "Something went wrong") ))) },
-                    ifRight = { call.respond(HttpStatusCode.OK, DataRequestBody(mapOf("message" to "Success"))) }
+                    ifLeft = { fcmError -> call.respondWith(fcmError.responseValues()) },
+                    ifRight = { call.respondOk() }
                 )
         }
     }
 }
-
-@Serializable
-data class NotificationRequestBody(val notification: Notification)
 
 fun main() {
     embeddedServer(
