@@ -2,9 +2,11 @@ package dev.wengelef.pushgw
 
 import arrow.core.Either
 import arrow.core.flatMap
+import dev.wengelef.pushgw.data.Notification
 import dev.wengelef.pushgw.data.`in`.DataRequestBody
 import dev.wengelef.pushgw.service.authenticator
 import dev.wengelef.pushgw.service.sendDataPush
+import dev.wengelef.pushgw.service.sendPush
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
@@ -19,6 +21,7 @@ import io.ktor.routing.*
 import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.serialization.Serializable
 import java.io.File
 
 fun Application.module() {
@@ -48,9 +51,24 @@ fun Application.module() {
         ::authenticator
     )
 
+    val sendNotification = sendPush(
+        "https://fcm.googleapis.com/v1/projects/$fcmAppId/messages:send",
+        httpClient,
+        ::authenticator
+    )
+
     install(Routing) {
         get("/hello") {
             call.respondText { "Hello" }
+        }
+
+        post("/push") {
+            Either.catch { call.receive<NotificationRequestBody>() }
+                .flatMap { body -> sendNotification(body.notification) }
+                .fold(
+                    ifLeft = { call.respond(HttpStatusCode.InternalServerError, DataRequestBody(mapOf("message" to (it.message ?: "Something went wrong") ))) },
+                    ifRight = { call.respond(HttpStatusCode.OK, DataRequestBody(mapOf("message" to "Success"))) }
+                )
         }
 
         post("/data") {
@@ -63,6 +81,9 @@ fun Application.module() {
         }
     }
 }
+
+@Serializable
+data class NotificationRequestBody(val notification: Notification)
 
 fun main() {
     embeddedServer(
