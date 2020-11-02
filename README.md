@@ -37,6 +37,7 @@ set to `true` to send only to test environments, can be omitted to use productio
 
 * Body: `Notification`
 
+Example:
 ```
 curl -X POST \
 "127.0.0.1:8181/push?test=true" \
