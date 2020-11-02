@@ -12,11 +12,11 @@
 
 Sends a data push to all devices
 
-Query params: `test={boolean}` (Optional)
+* Query params: `test={boolean}` (Optional)
 
 set to `true` to send only to test environments, can be omitted to use production value
 
-Body: `data` object to send
+* Body: `data` object to send
 
 Example:
 ```
