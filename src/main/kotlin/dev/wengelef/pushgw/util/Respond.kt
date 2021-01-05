@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.computations.either
 import dev.wengelef.pushgw.data.config.FCMConfig
 import dev.wengelef.pushgw.data.config.availableIds
-import dev.wengelef.pushgw.data.request.DataRequestBody
+import dev.wengelef.pushgw.data.request.Data
 import dev.wengelef.pushgw.data.request.FcmError
 import io.ktor.application.*
 import io.ktor.http.*
@@ -19,7 +19,7 @@ fun FcmError.responseValues(): Pair<HttpStatusCode, String> = when (this) {
 }
 
 suspend fun ApplicationCall.respondWith(values: Pair<HttpStatusCode, String>) {
-    respond(values.first, DataRequestBody(mapOf("message" to values.second)))
+    respond(values.first, Data(mapOf("message" to values.second)))
 }
 
 suspend fun ApplicationCall.respondOk() = respondWith(HttpStatusCode.OK to "Success")
