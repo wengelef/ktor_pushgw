@@ -1,7 +1,7 @@
 package dev.wengelef.pushgw
 
 import dev.wengelef.pushgw.data.config.FCMConfig
-import dev.wengelef.pushgw.data.request.DataRequestBody
+import dev.wengelef.pushgw.data.request.Data
 import dev.wengelef.pushgw.data.request.NotificationRequestBody
 import dev.wengelef.pushgw.service.authenticator
 import dev.wengelef.pushgw.service.sendDataPush
@@ -72,7 +72,7 @@ fun Application.module() {
         }
 
         post("/data") {
-            withParameters<DataRequestBody>(fcmConfig, call) { appId, body -> sendDataPush(appId, body.data) }
+            withParameters<Data>(fcmConfig, call) { appId, body -> sendDataPush(appId, body.data) }
                 .fold(
                     ifLeft = { fcmError -> call.respondWith(fcmError.responseValues()) },
                     ifRight = { call.respondOk() }
