@@ -1,5 +1,6 @@
 package dev.wengelef.pushgw.data
 
+import dev.wengelef.pushgw.data.apple.ApplePushConfig
 import dev.wengelef.pushgw.data.web.WebPushConfig
 import kotlinx.serialization.Serializable
 
@@ -9,7 +10,8 @@ data class Message(
     val data: Map<String, String>? = null,
     val notification: Notification? = null,
     val topic: String? = null,
-    val webpush: WebPushConfig? = null
+    val webpush: WebPushConfig? = null,
+    val applePushConfig: ApplePushConfig? = null
 )
 
 @Serializable
